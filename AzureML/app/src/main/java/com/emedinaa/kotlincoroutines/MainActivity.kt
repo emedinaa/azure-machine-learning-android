@@ -1,6 +1,5 @@
 package com.emedinaa.kotlincoroutines
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -9,7 +8,6 @@ import com.emedinaa.kotlincoroutines.data.RemoteDataSource
 import com.emedinaa.kotlincoroutines.data.Repository
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -17,18 +15,12 @@ import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
-    private var reviewList:List<Review> = emptyList()
     private var age:Int =0
     private var anemia:Int =0
     private var diabetes:Int =0
     private var smoking:Int =0
     private var sex =-1
 
-    private val adapter:MainAdapter by lazy {
-        MainAdapter(emptyList()){
-            goToCourse(it)
-        }
-    }
     private val repository:Repository by  lazy {
         Repository(RemoteDataSource())
     }
@@ -36,10 +28,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        recyclerView.adapter = adapter
-
-        //fetchCourses()
-        //fetchData()
 
         radioGroupSex.setOnCheckedChangeListener { _, checkedId ->
             sex = when(checkedId){
@@ -55,15 +43,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun goToCourse(course: Course){
-        val intent = Intent(this,CourseActivity::class.java)
-        intent.putExtras(Bundle().apply {
-            putParcelable("COURSE",course)
-        })
-        startActivity(intent)
-    }
-
 
     private fun validateForm():Boolean{
         age = editTextAge.text.toString().toInt()
@@ -117,41 +96,6 @@ class MainActivity : AppCompatActivity() {
             }?:run{
                 textViewResult.text = "Error"
             }
-        }
-    }
-
-    private fun fetchCourses(){
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO){
-                repository.fetchCourses()
-            }
-            adapter.update(result)
-        }
-    }
-
-    private fun fetchReviews(){
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO){
-                repository.fetchCourses()
-            }
-            adapter.update(result)
-        }
-    }
-
-    private fun fetchData(){
-        lifecycleScope.launch {
-            val courseDeferred = async(Dispatchers.IO){
-                repository.fetchCourses()
-            }
-            val reviewDeferred = async(Dispatchers.IO){
-                repository.fetchReviews()
-            }
-
-            val courseResult = courseDeferred.await()
-            val reviewResult = reviewDeferred.await()
-
-            adapter.update(courseResult)
-            reviewList = reviewResult
         }
     }
 
